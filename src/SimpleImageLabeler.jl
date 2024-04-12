@@ -2,22 +2,7 @@ module SimpleImageLabeler
 
 using CSV, DataFrames, JSON, ImageView, Images, FileIO, Random, Glob, Comonicon
 
-"""
-A simple tool for image labeling
-
-# Args
-
-- `filename`: output file in csv format
-
-# Options
-- `-i, --images-path=<directory>`: directory where images are located
-- `-l, --labels=<labels>`: comma separated labels
-- `-d, --default=<def-label>`: default label (captured with empty string and enter)
-"""
-@main function main(filename::String; images_path::String, labels::String="0,1", default=nothing)
-    valid_labels = split(labels, ',')
-    default = default === nothing ? first(valid_labels) : default
-
+function labeling_loop(filename::String; images_path::String, valid_labels::Vector=(0, 1), default=first(valid_labels))
     if isfile(filename)
         @info "loading data from $filename"
         df = CSV.read(filename, DataFrame)
@@ -60,6 +45,25 @@ A simple tool for image labeling
 
         CSV.write(filename, df)
     end
+end
+
+"""
+A simple tool for image labeling
+
+# Args
+
+- `filename`: output file in csv format
+
+# Options
+- `-i, --images-path=<directory>`: directory where images are located
+- `-l, --labels=<labels>`: comma separated labels
+- `-d, --default=<def-label>`: default label (captured with empty string and enter)
+"""
+@main function main(filename::String; images_path::String, labels::String="0,1", default=nothing)
+    valid_labels = split(labels, ',')
+    default = default === nothing ? first(valid_labels) : default
+
+    labeling_loop(filename; images_path, valid_labels, default)
 end
 
 
