@@ -2,7 +2,7 @@ module SimpleImageLabeler
 
 using CSV, DataFrames, JSON, ImageView, Images, FileIO, Random, Glob, Comonicon
 
-function labeling_loop(filename::String; images_path::String, valid_labels::Vector=(0, 1), default=first(valid_labels))
+function labeling_loop(filename::String; images_path::String, valid_labels::Vector{String}=["0", "1"], default=first(valid_labels))
     if isfile(filename)
         @info "loading data from $filename"
         df = CSV.read(filename, DataFrame)
@@ -26,19 +26,19 @@ function labeling_loop(filename::String; images_path::String, valid_labels::Vect
             imshow(img)
             println("$(length(L)+1)/$n - labels for $imgname>")
             input = readline(stdin) |> strip
-            labels = if input in ("", default)
-                0
-            elseif input == "1"
-                1
+            l = if input in ("", default)
+                default
+            elseif input in valid_labels
+                input
             elseif input == "save"
                 CSV.write(filename, df)
                 continue
             else
-                println("please respond $labels or save")
+                println("unknown '$l' label or command; valid labels $valid_labels, valid commands: save")
                 continue
             end
 
-            df.labels[exampleID] = labels
+            df.labels[exampleID] = l
             ImageView.closeall()
             break
         end
